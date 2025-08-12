@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard | SquadTrade HB</title>
+  <link rel="icon" href="ico.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+
+</head>
+<body>
+  <!-- Dashboard -->
+  <main id="dashboard">
+    <header class="dashboard-topbar">
+  <div class="topbar-left" style="display: flex; align-items: center; gap: 1rem;">
+    <img src="logo.png" class="dashboard-logo" alt="Logo" />
+    <h1 class="welcome-text">Bem-Vindo, <span id="username">Carregando...</span></h1>
+  </div>
+        <div class="user-welcome">
+          <div class="balance-display">
+            <span class="balance-label">Saldo Disponível:</span>
+            <span class="balance-value">R$ <span id="saldo">0,00</span></span>
+          </div>
+        </div>
+  <div class="topbar-right" style="display: flex; align-items: center; gap: 1rem;">
+    <button class="icon-btn" onclick="abrirModalSenha()">🔐</button>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
+</header>
+
+    <div class="dashboard-content">
+      <div class="main-panels">
+        <div class="card book-card">
+          <div class="card-header">
+            <h2 class="card-title">📊 Book de Ofertas B3</h2>
+            <div class="market-status"><span class="status-dot"></span><span>Mercado Aberto</span></div>
+          </div>
+          <div class="table-wrapper">
+            <table id="book"><thead><tr><th>Ativo</th><th>Preço Atual (R$)</th><th>Variação</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+        <div class="card wallet-card">
+          <div class="card-header">
+            <h2 class="card-title">💼 Minha Carteira</h2>
+            <div class="wallet-total"><span>Valor Total: </span><span id="valorTotal" class="total-value">R$ 0,00</span></div>
+          </div>
+          <div id="portfolioEmpty" class="empty-wallet"><div class="empty-icon">📈</div><p class="empty-text">Sua carteira está vazia</p><small class="empty-subtext">Comece investindo nos ativos disponíveis</small></div>
+          <div class="table-wrapper" style="display: none;">
+            <table id="carteira"><thead><tr><th>Ativo</th><th>Quantidade</th><th>Preço Atual</th><th>Valor Total</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/luxon@3"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📈 Análise Técnica</h2>
+        </div>
+        <div class="card-body">
+          <label for="ativoSelect">Ativo:</label>
+          <select id="ativoSelect" onchange="atualizarGrafico()"></select>
+
+          <label for="intervaloSelect" style="margin-left: 20px;">Exibir por:</label>
+          <select id="intervaloSelect">
+            <option value="30">30 Segundos</option>
+            <option value="60">1 Minuto</option>
+            <option value="300">5 Minuto</option>
+            <option value="1800">30 Minuto</option>
+            <option value="3600">1 Hora</option>
+          </select>
+
+          <div style="position: relative; width: fit-content;">
+            <canvas id="graficoTecnico" width="1150" height="300"></canvas>
+            <div id="popupCandle" style="
+              display: none;
+              position: absolute;
+              background: #111;
+              border: 1px solid #333;
+              color: white;
+              font-family: monospace;
+              padding: 10px;
+              border-radius: 5px;
+              z-index: 10000;
+              pointer-events: none;
+              white-space: nowrap;
+            "></div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+      <div class="trading-section">
+        <h2 class="trading-header">💰 Boleta de Compra e Venda</h2>
+        <div class="trading-form">
+          <div class="form-group"><label>Tipo de Operação</label><select id="tipo"><option value="Compra">Compra</option><option value="Venda">Venda</option></select></div>
+          <div class="form-group"><label>Ativo</label><select id="ativo"></select></div>
+          <div class="form-group"><label>Quantidade</label><input type="number" id="quantidade" placeholder="Múltiplos de 100"></div>
+          <div class="form-group"><label>Valor por Lote (R$)</label><input type="number" id="valor" placeholder="0.00" step="0.01"></div>
+          <button class="submit-order-btn" onclick="executarOrdem()">Enviar Ordem</button>
+        </div>
+        <div id="mensagem" class="feedback-message"></div>
+      </div>
+      <div class="additional-sections">
+        <div class="main-panels">
+        <div class="card">
+          <div class="card-header" style="display:flex; align-items:center; justify-content: space-between;">
+            <h2 class="card-title" style="margin:0;">📋 Extrato de Operações</h2>
+            <button id="btnDownloadExtrato" style="cursor:pointer; padding:4px 8px; font-size:14px;">⬇ Download</button>
+          </div>
+          <div class="table-wrapper">
+            <table id="extrato">
+              <thead>
+                <tr><th>Tipo</th><th>Ativo</th><th>Quantidade</th><th>Valor Total (R$)</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Script SheetJS para XLSX -->
+        <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js"></script>
+        <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+        
+        <!-- Modal Download -->
+        <div id="modalDownload" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; 
+          background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+          <div class="modal-content">
+          <div style="background:#fff; padding:20px; border-radius:8px; width:300px; text-align:center; position:relative;">
+            <h3>Baixar Extrato</h3>
+            <p>Escolha o formato:</p>
+            <button id="baixarXLSX" style="margin:5px 10px; padding:8px 16px; cursor:pointer;">XLSX</button>
+            <button id="baixarJSON" style="margin:5px 10px; padding:8px 16px; cursor:pointer;">JSON</button>
+            <button id="fecharModalDownload" style="position:absolute; top:10px; right:10px; cursor:pointer; font-weight:bold;        border:none; background:none; font-size:18px;">✖</button>
+          </div>
+        </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📝 Book de Ordens</h2>
+          </div>
+          <div class="table-wrapper">
+            <table id="ordens">
+              <thead>
+                <tr><th>Tipo</th><th>Ativo</th><th>Quantidade</th><th>Valor</th><th>Cotação</th><th>Status</th><th>Ação</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <!-- Rodapé -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-content">
+      <p>© 2025 <strong>SquadTrade Code Brokers</strong> – Todos os direitos reservados.</p>
+      <p>Desenvolvido por: <strong>SquadTrade</strong></p>
+    </div>
+  </footer>
+
+  </main>
+
+<!-- Modal de Alterar Senha -->
+<div id="modalSenha" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="fecharModalSenha()">×</span>
+    <h2>🔐 Alterar Senha</h2>
+    <div class="password-form">
+      <div class="password-wrapper">
+        <input type="password" id="novaSenha" placeholder="Nova senha (mínimo 3 caracteres)">
+        <span class="password-toggle" id="toggleSenha" onclick="toggleSenha()">👁️</span>
+      </div>
+      <button class="password-btn" onclick="alterarSenha()">Salvar Nova Senha</button>
+      <div id="senhaMsg" class="feedback-message"></div>
+    </div>
+  </div>
+</div>
+
+
+  <script src="script_dashboard.js"></script>
+</body>
+</html>

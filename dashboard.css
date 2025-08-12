@@ -1,0 +1,167 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { height: 100%; font-family: 'Poppins', sans-serif; background: #0d1117; color: #fff; }
+    .dashboard-topbar {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 95vw; background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);
+      padding: 1rem 2rem; display: flex; justify-content: space-between;
+      align-items: center; color: #f1c40f; z-index: 1000;
+      border-radius: 0 0 15px 15px;
+    }
+    .dashboard-logo { height: 60px; object-fit: contain; margin-right: 1rem; }
+    .user-welcome h1 { font-size: 1.2rem; font-weight: 600; text-shadow: 0 0 8px #f1c40f; }
+    .balance-display { margin-top: 0.3rem; color: #f39c12; font-weight: 600; }
+    .logout-btn { background: linear-gradient(45deg,#f1c40f,#f39c12); border: none; padding: 0.5rem 1.5rem; border-radius:30px;
+                  color:#2c3e50; font-weight:700; cursor:pointer; box-shadow:0 4px 15px rgba(241,196,15,0.6); transition:0.3s; }
+    .logout-btn:hover { box-shadow:0 8px 25px rgba(243,156,18,0.8); }
+    main#dashboard { padding-top: 120px; max-width: 1200px; margin: 0 auto; width: 95vw; margin-bottom: 100px; }
+    .dashboard-content { display: flex; flex-direction: column; gap: 2rem; }
+    .main-panels { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);
+            border-radius:15px; padding:1rem; flex:1 1 300px; box-shadow:0 8px 32px rgba(31,38,135,0.37); }
+    .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+    .card-title { font-size:1.3rem; color:#f1c40f; text-shadow:0 0 6px #f1c40f; }
+    .table-wrapper { overflow-x:auto; max-height:300px; }
+    table { width:100%; border-collapse: collapse; color:#fff; }
+    th, td { padding:0.6rem; border-bottom:1px solid rgba(241,196,15,0.2); text-align:left; }
+    thead { background:rgba(241,196,15,0.15); color:#f1c40f; }
+    tbody tr:nth-child(even) { background:rgba(241,196,15,0.07); }
+    tbody tr:hover { background:rgba(241,196,15,0.15); }
+    .empty-wallet { text-align:center; padding:2rem; color:#f1c40f; }
+    .empty-icon { font-size:3rem; }
+    .trading-section { background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
+                       border-radius:15px; padding:1rem; box-shadow:0 8px 32px rgba(31,38,135,0.37); }
+    .trading-header { font-size:1.3rem; color:#f1c40f; margin-bottom:1rem; }
+    .trading-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+    .form-group { display:flex; flex-direction:column; color:#f1c40f; }
+    .form-group label { margin-bottom:0.3rem; }
+    .form-group input, .form-group select { padding:0.6rem; border:none; border-radius:10px;
+                                             background:rgba(255,255,255,0.1); color:#fff; }
+    .submit-order-btn { grid-column:1/-1; padding:0.8rem; background:linear-gradient(45deg,#f1c40f,#f39c12);
+                        color:#2c3e50; border:none; border-radius:30px; font-weight:700; cursor:pointer;
+                        box-shadow:0 4px 15px rgba(241,196,15,0.6); transition:0.3s; }
+    .submit-order-btn:hover { box-shadow:0 8px 25px rgba(243,156,18,0.8); }
+    .feedback-message { margin-top:0.6rem; color:#e74c3c; font-weight:600; min-height:1.2em; }
+    .additional-sections { display:flex; flex-direction:column; gap:2rem; }
+    .section { background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
+               padding:1rem; border-radius:15px; box-shadow:0 8px 32px rgba(31,38,135,0.37); }
+    .section-title { font-size:1.2rem; color:#f1c40f; margin-bottom:1rem; }
+    .password-wrapper { display:flex; align-items:center; }
+    .password-wrapper input { flex:1; padding:0.6rem; border:none; background:rgba(255,255,255,0.1); color:#fff;
+                               border-radius:10px; }
+    .password-toggle { cursor:pointer; margin-left:0.5rem; }
+
+    /* Modal: cobre toda a tela e centraliza o conteúdo */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Conteúdo centralizado do modal */
+.modal-content {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  padding: 2rem;
+  border-radius: 15px;
+  color: #f1c40f;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+  position: relative;
+  text-align: center;
+}
+
+/* Botão de fechar o modal */
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+/* Estilo do botão de cadeado */
+.icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1c40f;
+  font-size: 1.2rem;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
+  transition: 0.3s;
+}
+
+.icon-btn:hover {
+  background: rgba(241, 196, 15, 0.2);
+}
+
+.footer {
+  width: 100%;
+  margin-top: 3rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  color: #f1c40f;
+  font-size: 1rem;
+  border-radius: 15px 15px 0 0;
+  box-shadow: 0 -4px 12px rgba(241, 196, 15, 0.1);
+}
+
+.footer-content p {
+  margin: 0.3rem 0;
+}
+
+@media (max-width: 600px) {
+  .footer {
+    font-size: 0.8rem;
+  }
+}
+
+
+
+.trading-form {
+  display: flex;
+  align-items: flex-end; /* Alinha verticalmente os elementos pela base */
+  gap: 1rem; /* Espaçamento horizontal entre os itens */
+  flex-wrap: wrap; /* Permite quebrar linha se a tela for muito pequena */
+}
+
+.trading-form .form-group {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  min-width: 150px; /* largura mínima para os campos */
+  flex-grow: 1; /* para campos crescerem um pouco se necessário */
+}
+
+.submit-order-btn {
+  height: 38px; /* altura semelhante aos inputs */
+  padding: 0 20px;
+  cursor: pointer;
+  background-color: #2ecc71;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  flex-shrink: 0; /* o botão não encolhe */
+  align-self: flex-end; /* alinha o botão no final verticalmente */
+}
+
+
+
+.card-body select {
+  margin: 10px 0;
+  padding: 4px 8px;
+  font-family: 'Poppins', sans-serif;
+}
