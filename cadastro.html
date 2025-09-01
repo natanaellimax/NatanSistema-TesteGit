@@ -1,5 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<style>
+/* Container do login com tamanho fixo e scroll interno */
+.login-container {
+  background: white;
+  padding: 20px;
+  width: 320px;
+  max-height: 90vh;       /* máximo 90% da altura da viewport */
+  overflow-y: auto;       /* só rolar internamente se necessário */
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* Para browsers WebKit (Chrome, Safari, Edge) */
+.login-container::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Para Firefox */
+.login-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+  position: relative; /* para posicionar seta */
+}
+
+/* Setinha indicativa no canto inferior direito */
+.login-container::after {
+  content: "▼"; /* seta para baixo */
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 18px;
+  color: yellow;
+  pointer-events: none; /* não atrapalha cliques */
+  animation: bounce 2s infinite;
+  user-select: none;
+}
+
+/* Animação suave para chamar atenção   */
+@keyframes bounce {
+  0%, 100% { transform: translateY(-50px); }
+  50% { transform: translateY(15px); }
+}
+</style>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,40 +53,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="login-container" role="main" aria-label="Formulário de Acesso">
-    <img src="logo.png" alt="SquadTrade Logo" class="logo" />
-    <h1>Acesso Login</h1>
-    <input type="text" id="cpfLogin" placeholder="Digite o CPF (000.000.000-00)" maxlength="14" onkeyup="formatarCPF(this)" />
-    <div class="password-container">
-      <input type="password" id="senhaLogin" placeholder="Senha" />
-      <span id="togglePassword" class="toggle-password" aria-label="Mostrar senha" role="button" tabindex="0" style="margin-top: -7px;">👁️</span>
-    </div>
-    <button onclick="realizarLogin()">Entrar</button>
-    <p id="loginMsg" class="error" style="color: red;"></p>
-    <p>Não tem conta? <a href="cadastro.html">Cadastre-se</a></p>
-  </div>
+<div class="login-container" role="main" aria-label="Formulário de Acesso"> 
+  <img src="logo.png" class="logo" alt="Logo" />
+  <h1>Crie sua conta</h1>
+  <input type="text" id="nome" placeholder="Nome completo" />
+  <input type="text" id="cpf" placeholder="Digite o CPF (000.000.000-00)" maxlength="14" onkeyup="formatarCPF(this)" />
+  <input type="email" id="email" placeholder="E-mail" />
+  <input type="text" id="celular" placeholder="Celular" />
+  <input type="password" id="senha" placeholder="Senha (8+ chars, nº e maiúscula)" />
+  <input type="password" id="confirmarSenha" placeholder="Confirme a senha" />
+  <button onclick="realizarCadastro()">Criar Conta</button>
+  <p id="msgCadastro" class="error" style="color: red;"></p>
+  <p>Já tem conta? <a href="index.html">Faça login</a></p>
+</div>
 
-<script src="script.js"></script>
-<script>
-    // SCRIPT VISUALIZAR A SENHA 
-    const togglePassword = document.getElementById('togglePassword');
-    const senhaLogin = document.getElementById('senhaLogin');
-    togglePassword.addEventListener('click', () => {
-    const type = senhaLogin.getAttribute('type') === 'password' ? 'text' : 'password';
-    senhaLogin.setAttribute('type', type);
-    // Alternar ícone (você pode usar outros ícones aqui)
-    togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
-    });
-    // Para acessibilidade: permitir usar tecla Enter para alternar o olho
-    togglePassword.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      togglePassword.click();
-    }
-    });
-</script>
+  <script src="script.js"></script>
+
+
+
 </body>
 </html>
-
-
 
