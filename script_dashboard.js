@@ -194,7 +194,7 @@ document.getElementById('baixarXLSX').addEventListener('click', baixarXLSX);
 }
 
 
-    function executarOrdem() { 
+function executarOrdem() {
   const tipo = document.getElementById('tipo').value;
   const ativo = document.getElementById('ativo').value;
   const qtd = parseInt(document.getElementById('quantidade').value);
@@ -209,21 +209,24 @@ document.getElementById('baixarXLSX').addEventListener('click', baixarXLSX);
     return;
   }
 
+  // Cria uma ordem com status inicial como Pendente
+  const novaOrdem = {
+    id: Date.now(),
+    tipo,
+    ativo,
+    qtd,
+    preco: valor,
+    cotacao: '-',
+    status: 'Pendente'
+  };
+
   if (tipo === 'Compra') {
     if (usuarios[usuarioAtual].saldo >= total) {
       usuarios[usuarioAtual].saldo -= total;
       carteira[ativo] = (carteira[ativo] || 0) + qtd;
-      msg = 'Compra realizada';
+      msg = 'Compra registrada (em execução)';
       extrato.push({ tipo: 'Compra', ativo, qtd, total });
-      ordens.push({
-        id: Date.now(),
-        tipo,
-        ativo,
-        qtd,
-        preco: valor,
-        cotacao: '-',
-        status: 'Executada'
-      });
+      ordens.push(novaOrdem);
     } else {
       msg = 'Saldo insuficiente';
     }
@@ -231,17 +234,9 @@ document.getElementById('baixarXLSX').addEventListener('click', baixarXLSX);
     if ((carteira[ativo] || 0) >= qtd) {
       usuarios[usuarioAtual].saldo += total;
       carteira[ativo] -= qtd;
-      msg = 'Venda realizada';
+      msg = 'Venda registrada (em execução)';
       extrato.push({ tipo: 'Venda', ativo, qtd, total });
-      ordens.push({
-        id: Date.now(),
-        tipo,
-        ativo,
-        qtd,
-        preco: valor,
-        cotacao: '-',
-        status: 'Executada'
-      });
+      ordens.push(novaOrdem);
     } else {
       msg = 'Quantidade indisponível';
     }
@@ -250,14 +245,47 @@ document.getElementById('baixarXLSX').addEventListener('click', baixarXLSX);
   saveData();
   document.getElementById('mensagem').textContent = msg;
   renderDashboard();
-}
 
-
-    function cancelarOrdem(id) {
-      ordens = ordens.map(o => o.id===id ? { ...o, status: 'Cancelada' } : o);
+  // ⏱️ Após 10 segundos, mudar o status para "Executada"
+  setTimeout(() => {
+    const ordem = ordens.find(o => o.id === novaOrdem.id);
+    if (ordem && ordem.status === 'Pendente') {
+      ordem.status = 'Executada';
       saveData();
       renderDashboard();
     }
+  }, 10000); // 10 segundos = 10000 ms
+}
+
+
+
+    function cancelarOrdem(id) {
+  const ordem = ordens.find(o => o.id === id);
+  let msg = '';
+
+  if (!ordem) {
+    msg = 'Ordem não encontrada.';
+  } else if (ordem.status === 'Executada') {
+    msg = 'Não é possível cancelar uma ordem já executada.';
+  } else if (ordem.status === 'Cancelada') {
+    msg = 'Ordem já foi cancelada.';
+  } else {
+    // Devolve o valor da ordem para o saldo
+    const total = +(ordem.qtd * ordem.preco).toFixed(2);
+    usuarios[usuarioAtual].saldo += total;
+
+    // Atualiza o status da ordem para Cancelada
+    ordens = ordens.map(o => o.id === id ? { ...o, status: 'Cancelada' } : o);
+
+    msg = 'Ordem cancelada com sucesso.';
+  }
+
+  // Atualiza interface
+  saveData();
+  document.getElementById('mensagem').textContent = msg;
+  renderDashboard();
+}
+
 
     function toggleSenha() {
       const inp = document.getElementById('novaSenha');
