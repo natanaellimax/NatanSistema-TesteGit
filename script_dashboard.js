@@ -194,34 +194,64 @@ document.getElementById('baixarXLSX').addEventListener('click', baixarXLSX);
 }
 
 
-    function executarOrdem() {
-      const tipo = document.getElementById('tipo').value;
-      const ativo = document.getElementById('ativo').value;
-      const qtd = parseInt(document.getElementById('quantidade').value);
-      const valor = parseFloat(document.getElementById('valor').value);
-      const total = +(qtd * valor).toFixed(2);
-      let msg = '';
-      if(tipo==='Compra') {
-        if(usuarios[usuarioAtual].saldo >= total) {
-          usuarios[usuarioAtual].saldo -= total;
-          carteira[ativo] = (carteira[ativo]||0)+qtd;
-          msg = 'Compra realizada';
-          extrato.push({ tipo:'Compra', ativo, qtd, total });
-          ordens.push({ id: Date.now(), tipo, ativo, qtd, preco: valor, cotacao: '-', status: 'Executada' });
-        } else msg = 'Saldo insuficiente';
-      } else {
-        if((carteira[ativo]||0)>=qtd) {
-          usuarios[usuarioAtual].saldo += total;
-          carteira[ativo] -= qtd;
-          msg = 'Venda realizada';
-          extrato.push({ tipo:'Venda', ativo, qtd, total });
-          ordens.push({ id: Date.now(), tipo, ativo, qtd, preco: valor, cotacao: '-', status: 'Executada' });
-        } else msg = 'Quantidade indisponível';
-      }
-      saveData();
-      document.getElementById('mensagem').textContent = msg;
-      renderDashboard();
+    function executarOrdem() { 
+  const tipo = document.getElementById('tipo').value;
+  const ativo = document.getElementById('ativo').value;
+  const qtd = parseInt(document.getElementById('quantidade').value);
+  const valor = parseFloat(document.getElementById('valor').value);
+  const total = +(qtd * valor).toFixed(2);
+  let msg = '';
+
+  // ⚠️ Verificação de múltiplo de 100
+  if (qtd % 100 !== 0) {
+    msg = 'A quantidade deve ser múltiplo de 100';
+    document.getElementById('mensagem').textContent = msg;
+    return;
+  }
+
+  if (tipo === 'Compra') {
+    if (usuarios[usuarioAtual].saldo >= total) {
+      usuarios[usuarioAtual].saldo -= total;
+      carteira[ativo] = (carteira[ativo] || 0) + qtd;
+      msg = 'Compra realizada';
+      extrato.push({ tipo: 'Compra', ativo, qtd, total });
+      ordens.push({
+        id: Date.now(),
+        tipo,
+        ativo,
+        qtd,
+        preco: valor,
+        cotacao: '-',
+        status: 'Executada'
+      });
+    } else {
+      msg = 'Saldo insuficiente';
     }
+  } else {
+    if ((carteira[ativo] || 0) >= qtd) {
+      usuarios[usuarioAtual].saldo += total;
+      carteira[ativo] -= qtd;
+      msg = 'Venda realizada';
+      extrato.push({ tipo: 'Venda', ativo, qtd, total });
+      ordens.push({
+        id: Date.now(),
+        tipo,
+        ativo,
+        qtd,
+        preco: valor,
+        cotacao: '-',
+        status: 'Executada'
+      });
+    } else {
+      msg = 'Quantidade indisponível';
+    }
+  }
+
+  saveData();
+  document.getElementById('mensagem').textContent = msg;
+  renderDashboard();
+}
+
 
     function cancelarOrdem(id) {
       ordens = ordens.map(o => o.id===id ? { ...o, status: 'Cancelada' } : o);
