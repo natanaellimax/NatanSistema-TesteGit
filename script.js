@@ -129,26 +129,49 @@ function criarPopupEstilizado(titulo, mensagem, callback) {
 
 // Função para formatar CPF
 function formatarCPF(input) {
-  var v = input.value.replace(/\D/g, '');
+  let v = input.value.replace(/\D/g, '');
   v = v.replace(/(\d{3})(\d)/, '$1.$2');
   v = v.replace(/(\d{3})(\d)/, '$1.$2');
   v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   input.value = v;
 }
 
+function validarNome(nome) {
+  return nome.trim().split(' ').length >= 2;
+}
+
+function validarCelular(celular) {
+  const somenteNumeros = celular.replace(/\D/g, '');
+  return somenteNumeros.length >= 10 && somenteNumeros.length <= 11;
+}
+
 // Função para validar CPF
 function validarCPF(cpf) {
-  return /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf);
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+  let resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.charAt(9))) return false;
+
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  return resto === parseInt(cpf.charAt(10));
 }
 
 // Função para validar email
 function validarEmail(email) {
-  return email.indexOf('@') > -1 && email.indexOf('.') > -1;
+  const regex = /^[^\s@]+@[^\s@]+\.(com\.br|com)$/i;
+  return regex.test(email);
 }
 
-// Função para validar senha
 function validarSenha(senha) {
-  return senha.length >= 8 && /[A-Z]/.test(senha) && /\d/.test(senha);
+  const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+  return regex.test(senha);
 }
 
 // Função para carregar dados do localStorage
@@ -199,20 +222,15 @@ function salvarDados() {
 }
 
 // Função para mostrar mensagem
-function mostrarMensagem(elementId, texto, tipo) {
-  var elemento = document.getElementById(elementId);
-  if (elemento) {
-    elemento.textContent = texto;
-    elemento.className = tipo || 'error';
-    debug('Mensagem exibida: ' + texto);
-  }
+function mostrarMensagem(id, msg, tipo) {
+  const elemento = document.getElementById(id);
+  elemento.textContent = msg;
+  elemento.style.color = tipo === 'success' ? 'green' : 'red';
 }
 
 
 // Função de cadastro
 function realizarCadastro() {
-  debug('Iniciando cadastro');
-
   const nome = document.getElementById('nome').value.trim();
   const cpf = document.getElementById('cpf').value.trim();
   const email = document.getElementById('email').value.trim();
@@ -220,9 +238,13 @@ function realizarCadastro() {
   const senha = document.getElementById('senha').value;
   const confirmarSenha = document.getElementById('confirmarSenha').value;
 
-  // Validações
   if (!nome || !cpf || !email || !celular || !senha || !confirmarSenha) {
     mostrarMensagem('msgCadastro', 'Preencha todos os campos', 'error');
+    return;
+  }
+
+  if (!validarNome(nome)) {
+    mostrarMensagem('msgCadastro', 'Informe nome e sobrenome', 'error');
     return;
   }
 
@@ -233,6 +255,11 @@ function realizarCadastro() {
 
   if (!validarEmail(email)) {
     mostrarMensagem('msgCadastro', 'E-mail inválido', 'error');
+    return;
+  }
+
+  if (!validarCelular(celular)) {
+    mostrarMensagem('msgCadastro', 'Celular inválido', 'error');
     return;
   }
 
@@ -247,14 +274,9 @@ function realizarCadastro() {
   }
 
   // Carregar dados existentes
-  carregarDados(); // esta função deve preencher a variável global `usuarios`
+  carregarDados();
+  if (typeof usuarios !== 'object' || usuarios === null) usuarios = {};
 
-  // Se usuários ainda for undefined, inicialize
-  if (typeof usuarios !== 'object' || usuarios === null) {
-    usuarios = {};
-  }
-
-  // Verificar duplicatas
   if (usuarios[cpf]) {
     mostrarMensagem('msgCadastro', 'CPF já cadastrado', 'error');
     return;
@@ -269,34 +291,23 @@ function realizarCadastro() {
 
   // Criar usuário
   usuarios[cpf] = {
-    nome: nome,
-    cpf: cpf,
-    email: email,
-    celular: celular,
-    senha: senha,
+    nome, cpf, email, celular, senha,
     saldo: 100000,
     dataCadastro: new Date().toISOString()
   };
 
-  // Definir como usuário atual
   usuarioAtual = cpf;
   carteira = {};
   extrato = [];
   ordens = [];
 
-  // Salvar dados
   if (salvarDados()) {
     mostrarMensagem('msgCadastro', 'Cadastro realizado com sucesso! Redirecionando...', 'success');
-    debug('Usuário cadastrado com sucesso', usuarios[cpf]);
-
-    setTimeout(function () {
-      window.location.href = 'dashboard.html';
-    }, 2000);
+    setTimeout(() => window.location.href = 'dashboard.html', 2000);
   } else {
     mostrarMensagem('msgCadastro', 'Erro ao salvar dados. Tente novamente.', 'error');
   }
 }
-
 
 // Função de login
 function realizarLogin() {
